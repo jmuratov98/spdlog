@@ -22,7 +22,7 @@ void syslog_example();
 void custom_flags_example();
 
 #include "spdlog/spdlog.h"
-#include "spdlog/cfg/env.h" // for loading levels from the environment variable
+#include "spdlog/cfg/env.h" // support for loading levels from the environment variable
 
 int main(int, char *[])
 {
@@ -129,7 +129,7 @@ void daily_example()
 #include "spdlog/cfg/env.h"
 void load_levels_example()
 {
-    // Set the log level to "info" and mylogger to to "trace":
+    // Set the log level to "info" and mylogger to "trace":
     // SPDLOG_LEVEL=info,mylogger=trace && ./example
     spdlog::cfg::load_env_levels();
     // or from command line:

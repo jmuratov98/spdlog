@@ -71,11 +71,12 @@
         printf("spdlog fatal error: %s\n", ex.what());                                                                                     \
         std::abort();                                                                                                                      \
     } while (0)
-#define SPDLOG_CATCH_ALL()
+#define SPDLOG_CATCH_STD
 #else
 #define SPDLOG_TRY try
 #define SPDLOG_THROW(ex) throw(ex)
-#define SPDLOG_CATCH_ALL() catch (...)
+#define SPDLOG_CATCH_STD                                                                                                                   \
+    catch (const std::exception &) {}
 #endif
 
 namespace spdlog {
@@ -88,7 +89,9 @@ class sink;
 
 #if defined(_WIN32) && defined(SPDLOG_WCHAR_FILENAMES)
 using filename_t = std::wstring;
-#define SPDLOG_FILENAME_T(s) L##s
+// allow macro expansion to occur in SPDLOG_FILENAME_T
+#define SPDLOG_FILENAME_T_INNER(s) L##s
+#define SPDLOG_FILENAME_T(s) SPDLOG_FILENAME_T_INNER(s)
 #else
 using filename_t = std::string;
 #define SPDLOG_FILENAME_T(s) s
@@ -101,6 +104,7 @@ using err_handler = std::function<void(const std::string &err_msg)>;
 using string_view_t = fmt::basic_string_view<char>;
 using wstring_view_t = fmt::basic_string_view<wchar_t>;
 using memory_buf_t = fmt::basic_memory_buffer<char, 250>;
+using wmemory_buf_t = fmt::basic_memory_buffer<wchar_t, 250>;
 
 #ifdef SPDLOG_WCHAR_TO_UTF8_SUPPORT
 #ifndef _WIN32
@@ -148,10 +152,38 @@ enum level_enum
     n_levels
 };
 
+#if !defined(SPDLOG_LEVEL_NAME_TRACE)
+#define SPDLOG_LEVEL_NAME_TRACE "trace"
+#endif
+
+#if !defined(SPDLOG_LEVEL_NAME_DEBUG)
+#define SPDLOG_LEVEL_NAME_DEBUG "debug"
+#endif
+
+#if !defined(SPDLOG_LEVEL_NAME_INFO)
+#define SPDLOG_LEVEL_NAME_INFO "info"
+#endif
+
+#if !defined(SPDLOG_LEVEL_NAME_WARNING)
+#define SPDLOG_LEVEL_NAME_WARNING "warning"
+#endif
+
+#if !defined(SPDLOG_LEVEL_NAME_ERROR)
+#define SPDLOG_LEVEL_NAME_ERROR "error"
+#endif
+
+#if !defined(SPDLOG_LEVEL_NAME_CRITICAL)
+#define SPDLOG_LEVEL_NAME_CRITICAL "critical"
+#endif
+
+#if !defined(SPDLOG_LEVEL_NAME_OFF)
+#define SPDLOG_LEVEL_NAME_OFF "off"
+#endif
+
 #if !defined(SPDLOG_LEVEL_NAMES)
 #define SPDLOG_LEVEL_NAMES                                                                                                                 \
     {                                                                                                                                      \
-        "trace", "debug", "info", "warning", "error", "critical", "off"                                                                    \
+        SPDLOG_LEVEL_NAME_TRACE, SPDLOG_LEVEL_NAME_DEBUG, SPDLOG_LEVEL_NAME_INFO, SPDLOG_LEVEL_NAME_WARNING, SPDLOG_LEVEL_NAME_ERROR, SPDLOG_LEVEL_NAME_CRITICAL, SPDLOG_LEVEL_NAME_OFF                                                                    \
     }
 #endif
 
@@ -163,7 +195,7 @@ enum level_enum
     }
 #endif
 
-SPDLOG_API string_view_t &to_string_view(spdlog::level::level_enum l) SPDLOG_NOEXCEPT;
+SPDLOG_API const string_view_t &to_string_view(spdlog::level::level_enum l) SPDLOG_NOEXCEPT;
 SPDLOG_API const char *to_short_c_str(spdlog::level::level_enum l) SPDLOG_NOEXCEPT;
 SPDLOG_API spdlog::level::level_enum from_str(const std::string &name) SPDLOG_NOEXCEPT;
 
@@ -203,8 +235,8 @@ private:
     std::string msg_;
 };
 
-SPDLOG_API void throw_spdlog_ex(const std::string &msg, int last_errno);
-SPDLOG_API void throw_spdlog_ex(std::string msg);
+[[noreturn]] SPDLOG_API void throw_spdlog_ex(const std::string &msg, int last_errno);
+[[noreturn]] SPDLOG_API void throw_spdlog_ex(std::string msg);
 
 struct source_loc
 {

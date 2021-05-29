@@ -31,6 +31,8 @@ $ cmake .. && make -j
 * vcpkg: `vcpkg install spdlog`
 * conan: `spdlog/[>=1.4.1]`
 * conda: `conda install -c conda-forge spdlog`
+* build2: ```depends: spdlog ^1.8.2```
+
 
 
 ## Features
@@ -45,8 +47,9 @@ $ cmake .. && make -j
     * Daily log files.
     * Console logging (colors supported).
     * syslog.
-    * Windows debugger (```OutputDebugString(..)```)
-    * Easily extendable with custom log targets  (just implement a single function in the [sink](include/spdlog/sinks/sink.h) interface).
+    * Windows event log.
+    * Windows debugger (```OutputDebugString(..)```).
+    * Easily [extendable](https://github.com/gabime/spdlog/wiki/4.-Sinks#implementing-your-own-sink) with custom log targets.
 * Log filtering - log levels can be modified in runtime as well as in compile time.
 * Support for loading log levels from argv or from environment var.
 * [Backtrace](#backtrace-support) support - store debug messages in a ring buffer and display later on demand.
@@ -188,6 +191,7 @@ void stopwatch_example()
 // {:s} - don't separate each byte with space.
 // {:p} - don't print the position on each line start.
 // {:n} - don't split the output to lines.
+// {:a} - show ASCII if :n is not set.
 
 #include "spdlog/fmt/bin_to_hex.h"
 
